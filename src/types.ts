@@ -3,19 +3,28 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
+export type ServiceTab = 'social' | 'performance' | 'digital' | 'automation' | 'cro';
+
+export interface AuditContext {
+  source: string;
+  selectedService?: string;
+  businessProblem?: string;
+  budgetRange?: string;
+}
+
 export interface LeadData {
   leadId: string;
   name: string;
-  businessName: string;
-  email: string;
+  businessName?: string;
+  email?: string;
   phone: string;
   website?: string;
-  businessType: string;
-  objective: string;
-  currentChannels: string[];
-  biggestProblem: string;
-  budgetRange: string;
-  recommendedService: string;
+  businessType?: string;
+  objective?: string;
+  currentChannels?: string[];
+  businessProblem?: string;
+  selectedService?: string;
+  budgetRange?: string; // Only stored if selected by visitor; no invented defaults
   notes?: string;
   source: string;
   utmSource?: string;
@@ -40,10 +49,10 @@ export type HarryPose =
 export interface ProblemOption {
   id: string;
   problem: string;
-  category: 'social' | 'performance' | 'digital' | 'automation' | 'cro';
+  category: ServiceTab;
   bottleneck: string;
   recommendedService: string;
-  serviceId: string;
+  serviceId: ServiceTab;
   investigateAreas: string[];
   explanation: string;
 }

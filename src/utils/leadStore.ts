@@ -6,79 +6,138 @@
 import { LeadData } from '../types';
 import { trackEvent } from './analytics';
 
-const STORAGE_KEY = 'marketme_leads_v1';
+export const OFFICIAL_PHONE = '9321856109';
+export const OFFICIAL_WHATSAPP_LINK = 'https://wa.me/919321856109';
 
-export function saveLead(data: Omit<LeadData, 'leadId' | 'createdAt'>): LeadData {
-  const leadId = `lead_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`;
-  const createdAt = new Date().toISOString();
+export interface SubmitResult {
+  success: boolean;
+  lead?: LeadData;
+  error?: string;
+  field?: string;
+  duplicate?: boolean;
+  networkError?: boolean;
+}
 
-  // Extract any UTM params from URL if present
-  let utmSource = '';
-  let utmMedium = '';
-  let utmCampaign = '';
+export type LeadSubmissionPayload = Omit<LeadData, 'leadId' | 'createdAt'>;
+
+/**
+ * Submits lead data to the real backend server endpoint (/api/leads).
+ * Only returns success when the server explicitly confirms acceptance.
+ */
+export async function submitLeadToServer(
+  data: LeadSubmissionPayload
+): Promise<SubmitResult> {
+  // Capture UTM parameters from URL if present
+  let utmSource = data.utmSource;
+  let utmMedium = data.utmMedium;
+  let utmCampaign = data.utmCampaign;
+
   if (typeof window !== 'undefined') {
     const params = new URLSearchParams(window.location.search);
-    utmSource = params.get('utm_source') || '';
-    utmMedium = params.get('utm_medium') || '';
-    utmCampaign = params.get('utm_campaign') || '';
+    utmSource = utmSource || params.get('utm_source') || undefined;
+    utmMedium = utmMedium || params.get('utm_medium') || undefined;
+    utmCampaign = utmCampaign || params.get('utm_campaign') || undefined;
   }
 
-  const fullLead: LeadData = {
+  const payload: LeadSubmissionPayload = {
     ...data,
-    leadId,
-    createdAt,
     utmSource,
     utmMedium,
     utmCampaign,
   };
 
   try {
-    const existing: LeadData[] = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
-    existing.push(fullLead);
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(existing));
-  } catch (err) {
-    console.warn('Failed to save lead to localStorage', err);
+    const response = await fetch('/api/leads', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(payload),
+    });
+
+    const result = await response.json().catch(() => null);
+
+    if (response.ok && result?.success) {
+      trackEvent('lead_submitted', {
+        leadId: result.lead?.leadId,
+        selectedService: payload.selectedService,
+        source: payload.source,
+      });
+
+      return {
+        success: true,
+        lead: result.lead,
+      };
+    }
+
+    if (response.status === 429 || result?.duplicate) {
+      return {
+        success: false,
+        duplicate: true,
+        error:
+          result?.error ||
+          'An inquiry with this contact number was already received recently. Our team will contact you shortly.',
+      };
+    }
+
+    if (result && !result.success) {
+      return {
+        success: false,
+        error: result.error || 'Server rejected the submission.',
+        field: result.field,
+      };
+    }
+
+    return {
+      success: false,
+      networkError: true,
+      error: `Server responded with status ${response.status}. Your request has not been sent.`,
+    };
+  } catch (err: unknown) {
+    console.error('[LeadStore] Network error submitting lead:', err);
+    return {
+      success: false,
+      networkError: true,
+      error:
+        'Unable to reach the server. Your request has not been sent. Please chat with us directly on WhatsApp below.',
+    };
   }
-
-  trackEvent('lead_submitted', {
-    leadId: fullLead.leadId,
-    objective: fullLead.objective,
-    recommendedService: fullLead.recommendedService,
-    budgetRange: fullLead.budgetRange,
-  });
-
-  return fullLead;
 }
 
-export function getSavedLeads(): LeadData[] {
-  try {
-    return JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
-  } catch {
-    return [];
-  }
-}
-
-export const OFFICIAL_PHONE = '9321856109';
-export const OFFICIAL_WHATSAPP_LINK = `https://wa.me/919321856109`;
-
-export function generateWhatsAppLeadLink(lead?: Partial<LeadData>, customMessage?: string): string {
+/**
+ * Generates an accurate WhatsApp pre-filled link reflecting strictly the user's selected information.
+ */
+export function generateWhatsAppLeadLink(
+  lead?: Partial<LeadData>,
+  customMessage?: string
+): string {
   if (customMessage) {
     return `https://wa.me/91${OFFICIAL_PHONE}?text=${encodeURIComponent(customMessage)}`;
   }
 
-  let text = `Hi MarketMe! I'd like to get a Marketing Audit for my business.`;
+  const lines: string[] = ['Hi MarketMe! I would like to request a free Marketing Audit.'];
+
+  if (lead?.name) {
+    lines.push(`Name: ${lead.name}`);
+  }
   if (lead?.businessName) {
-    text += `\nBusiness: ${lead.businessName}`;
+    lines.push(`Business: ${lead.businessName}`);
   }
-  if (lead?.objective) {
-    text += `\nGoal: ${lead.objective}`;
+  if (lead?.phone) {
+    lines.push(`Phone: ${lead.phone}`);
   }
-  if (lead?.biggestProblem) {
-    text += `\nMain Bottleneck: ${lead.biggestProblem}`;
+  if (lead?.selectedService) {
+    lines.push(`Service of Interest: ${lead.selectedService}`);
+  }
+  if (lead?.businessProblem) {
+    lines.push(`Primary Bottleneck: ${lead.businessProblem}`);
   }
   if (lead?.budgetRange) {
-    text += `\nMonthly Budget: ${lead.budgetRange}`;
+    lines.push(`Budget: ${lead.budgetRange}`);
+  }
+  if (lead?.website) {
+    lines.push(`Website: ${lead.website}`);
   }
 
-  return `https://wa.me/91${OFFICIAL_PHONE}?text=${encodeURIComponent(text)}`;
+  return `https://wa.me/91${OFFICIAL_PHONE}?text=${encodeURIComponent(lines.join('\n'))}`;
 }

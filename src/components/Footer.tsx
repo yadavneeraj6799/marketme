@@ -7,8 +7,10 @@ import React, { useState } from 'react';
 import { ArrowUp, Instagram, Linkedin, MessageCircle, Shield } from 'lucide-react';
 import { OFFICIAL_WHATSAPP_LINK } from '../utils/leadStore';
 
+import { ServiceTab } from '../types';
+
 interface FooterProps {
-  onNavigateToSection: (sectionId: string) => void;
+  onNavigateToSection: (sectionId: string, serviceTab?: ServiceTab) => void;
   onOpenAuditModal: () => void;
 }
 
@@ -83,7 +85,7 @@ export const Footer: React.FC<FooterProps> = ({ onNavigateToSection, onOpenAudit
             <ul className="space-y-2 text-xs">
               <li>
                 <button
-                  onClick={() => onNavigateToSection('services-social')}
+                  onClick={() => onNavigateToSection('services', 'social')}
                   className="hover:text-white transition-colors cursor-pointer text-left"
                 >
                   Social Media Marketing
@@ -91,7 +93,7 @@ export const Footer: React.FC<FooterProps> = ({ onNavigateToSection, onOpenAudit
               </li>
               <li>
                 <button
-                  onClick={() => onNavigateToSection('services-performance')}
+                  onClick={() => onNavigateToSection('services', 'performance')}
                   className="hover:text-white transition-colors cursor-pointer text-left"
                 >
                   Performance Marketing
@@ -99,7 +101,7 @@ export const Footer: React.FC<FooterProps> = ({ onNavigateToSection, onOpenAudit
               </li>
               <li>
                 <button
-                  onClick={() => onNavigateToSection('services-digital')}
+                  onClick={() => onNavigateToSection('services', 'digital')}
                   className="hover:text-white transition-colors cursor-pointer text-left"
                 >
                   Full Digital Marketing
@@ -107,7 +109,7 @@ export const Footer: React.FC<FooterProps> = ({ onNavigateToSection, onOpenAudit
               </li>
               <li>
                 <button
-                  onClick={() => onNavigateToSection('services-automation')}
+                  onClick={() => onNavigateToSection('services', 'automation')}
                   className="hover:text-white transition-colors cursor-pointer text-left"
                 >
                   Marketing Automation
@@ -115,7 +117,7 @@ export const Footer: React.FC<FooterProps> = ({ onNavigateToSection, onOpenAudit
               </li>
               <li>
                 <button
-                  onClick={() => onNavigateToSection('services-cro')}
+                  onClick={() => onNavigateToSection('services', 'cro')}
                   className="hover:text-white transition-colors cursor-pointer text-left"
                 >
                   Websites & Landing Pages

@@ -2,5 +2,7 @@
   "name": "MarketMe | Interactive Digital Marketing Agency",
   "description": "MarketMe connects strategy, content, paid media, websites, and automation into one growth system. Turn attention into business growth.",
   "requestFramePermissions": [],
-  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
 }

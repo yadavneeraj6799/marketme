@@ -8,8 +8,10 @@ import { HarryMascot } from './HarryMascot';
 import { ArrowRight, ChevronRight, Check } from 'lucide-react';
 import { trackEvent } from '../utils/analytics';
 
+import { ServiceTab } from '../types';
+
 interface GrowthEngineProps {
-  onSelectService: (serviceId: string) => void;
+  onSelectService: (serviceTab: ServiceTab) => void;
   onOpenAuditModal: () => void;
 }
 
@@ -248,16 +250,16 @@ export const GrowthEngine: React.FC<GrowthEngineProps> = ({
               <div className="pt-2 flex flex-wrap items-center gap-3">
                 <button
                   onClick={() => {
-                    const targetService =
+                    const targetService: ServiceTab =
                       activeStage.id === 'attention'
-                        ? 'services-social'
+                        ? 'social'
                         : activeStage.id === 'traffic'
-                        ? 'services-performance'
+                        ? 'performance'
                         : activeStage.id === 'leads'
-                        ? 'services-performance'
+                        ? 'performance'
                         : activeStage.id === 'nurture'
-                        ? 'services-automation'
-                        : 'services-digital';
+                        ? 'automation'
+                        : 'digital';
                     onSelectService(targetService);
                   }}
                   className="px-4 py-2.5 rounded-lg bg-neutral-800 hover:bg-neutral-700 text-white text-xs sm:text-sm font-semibold inline-flex items-center gap-2 transition-colors cursor-pointer"

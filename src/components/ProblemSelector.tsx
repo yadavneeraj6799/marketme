@@ -4,13 +4,13 @@
  */
 
 import React, { useState } from 'react';
-import { ProblemOption } from '../types';
+import { ProblemOption, ServiceTab } from '../types';
 import { HarryMascot } from './HarryMascot';
 import { ArrowRight, CheckCircle2, AlertTriangle, Sparkles } from 'lucide-react';
 import { trackEvent } from '../utils/analytics';
 
 interface ProblemSelectorProps {
-  onSelectService: (serviceId: string) => void;
+  onSelectService: (serviceId: ServiceTab) => void;
   onOpenAuditModal: (contextProblem?: string) => void;
 }
 
@@ -21,7 +21,7 @@ const PROBLEMS: ProblemOption[] = [
     category: 'social',
     bottleneck: 'Brand Visibility & Market Familiarity',
     recommendedService: 'Social Media Marketing',
-    serviceId: 'services-social',
+    serviceId: 'social',
     investigateAreas: ['Platform presence', 'Content pillars', 'Organic reach', 'Brand voice', 'Awareness campaigns'],
     explanation:
       'If buyers do not encounter your business consistently, conversion-focused ads must do all the heavy lifting in cold territory. Building audience familiarity lowers acquisition friction.',
@@ -32,7 +32,7 @@ const PROBLEMS: ProblemOption[] = [
     category: 'social',
     bottleneck: 'Brand Credibility & Trust Perception',
     recommendedService: 'Social Media Marketing',
-    serviceId: 'services-social',
+    serviceId: 'social',
     investigateAreas: ['Publishing cadence', 'Proof assets', 'Profile optimization', 'Community activity', 'Content hygiene'],
     explanation:
       'Prospects check your social profiles to verify you are currently active and legitimate. Inactivity introduces hesitation right before a buying decision.',
@@ -43,7 +43,7 @@ const PROBLEMS: ProblemOption[] = [
     category: 'social',
     bottleneck: 'Content Intent & Commercial Alignment',
     recommendedService: 'Social Media Marketing',
-    serviceId: 'services-social',
+    serviceId: 'social',
     investigateAreas: ['Audience problem match', 'Hook-to-offer bridge', 'Call-to-action clarity', 'DM funnels', 'Offer positioning'],
     explanation:
       'Views and likes do not automatically translate to commercial demand unless content is specifically engineered around problems buyers pay to solve.',
@@ -54,7 +54,7 @@ const PROBLEMS: ProblemOption[] = [
     category: 'performance',
     bottleneck: 'Targeted Demand Generation',
     recommendedService: 'Performance Marketing',
-    serviceId: 'services-performance',
+    serviceId: 'performance',
     investigateAreas: ['Paid channel mix', 'Audience segmentation', 'Intent capture (Search)', 'High-intent offers', 'Tracking & attribution'],
     explanation:
       'When organic alone is too slow or unpredictable, deliberate paid acquisition systems (Meta, Google, JioHotstar) can reliably test and capture high-intent demand.',
@@ -65,7 +65,7 @@ const PROBLEMS: ProblemOption[] = [
     category: 'performance',
     bottleneck: 'Landing Page & Message Match Friction',
     recommendedService: 'Performance Marketing & Landing Pages',
-    serviceId: 'services-performance',
+    serviceId: 'cro',
     investigateAreas: ['Ad-to-page message match', 'Offer clarity', 'Page load speed', 'Form friction', 'Mobile UX'],
     explanation:
       'Clicks prove initial curiosity; lack of conversions reveals a broken bridge between what the ad promised and what the destination page delivers.',
@@ -76,7 +76,7 @@ const PROBLEMS: ProblemOption[] = [
     category: 'performance',
     bottleneck: 'Lead Qualification & Targeting Alignment',
     recommendedService: 'Performance Marketing',
-    serviceId: 'services-performance',
+    serviceId: 'performance',
     investigateAreas: ['Form friction level', 'Offer pricing transparency', 'Exclusion audiences', 'Qualification questions', 'CRM feedback loop'],
     explanation:
       'Over-optimizing for cheap leads often attracts bargain hunters. Introducing intentional qualification questions weeds out low-fit submissions before they reach sales.',
@@ -87,7 +87,7 @@ const PROBLEMS: ProblemOption[] = [
     category: 'cro',
     bottleneck: 'Conversion Rate & Value Articulation',
     recommendedService: 'Website Strategy & CRO',
-    serviceId: 'services-cro',
+    serviceId: 'cro',
     investigateAreas: ['Headline clarity', 'Social proof hierarchy', 'Call-to-action placement', 'Technical friction', 'Objection handling'],
     explanation:
       'Websites fail to convert when visitors cannot understand what you do, who you help, and why you are the credible choice within 5 seconds of landing.',
@@ -98,7 +98,7 @@ const PROBLEMS: ProblemOption[] = [
     category: 'automation',
     bottleneck: 'Lead Nurture & Operational Automation',
     recommendedService: 'Marketing Automation',
-    serviceId: 'services-automation',
+    serviceId: 'automation',
     investigateAreas: ['CRM integration', 'Instant WhatsApp notifications', 'Email drip sequences', 'Sales assignment rules', 'Speed to lead'],
     explanation:
       'Lead response time is the single highest predictor of close rate. Leads that sit untouched for hours quickly lose interest or buy from a competitor.',
@@ -109,7 +109,7 @@ const PROBLEMS: ProblemOption[] = [
     category: 'digital',
     bottleneck: 'Full-Funnel System Disconnection',
     recommendedService: 'Full Digital Marketing',
-    serviceId: 'services-digital',
+    serviceId: 'digital',
     investigateAreas: ['Omnichannel attribution', 'Audience retargeting pools', 'Central CRM data', 'Unified messaging', 'Multi-touch journey'],
     explanation:
       'Running ads, social, email, and web as siloed projects wastes budget. When channels share data and retarget sequentially, overall efficiency compounds.',

@@ -18,138 +18,146 @@ import { FinalCTA } from './components/FinalCTA';
 import { Footer } from './components/Footer';
 import { AskHarry } from './components/AskHarry';
 import { AuditModal } from './components/AuditModal';
+import { ServiceTab, AuditContext } from './types';
 
 export default function App() {
   const [isAuditModalOpen, setIsAuditModalOpen] = useState(false);
-  const [auditContext, setAuditContext] = useState<string | undefined>(undefined);
-  const [servicesTab, setServicesTab] = useState<'social' | 'performance' | 'digital' | 'automation' | 'cro'>('social');
+  const [auditContext, setAuditContext] = useState<AuditContext | undefined>(undefined);
+  const [servicesTab, setServicesTab] = useState<ServiceTab>('social');
 
-  const handleOpenAuditModal = (context?: string) => {
-    setAuditContext(context);
+  const handleOpenAuditModal = (context?: AuditContext) => {
+    setAuditContext(context || { source: 'Global CTA' });
     setIsAuditModalOpen(true);
   };
 
   const handleCloseAuditModal = () => {
     setIsAuditModalOpen(false);
-    setAuditContext(undefined);
   };
 
-  const handleNavigateToSection = (sectionId: string) => {
-    // If it's a specific service tab, select it and scroll to services section
-    if (sectionId === 'services-social') {
-      setServicesTab('social');
-      scrollToTarget('services');
-      return;
-    }
-    if (sectionId === 'services-performance') {
-      setServicesTab('performance');
-      scrollToTarget('services');
-      return;
-    }
-    if (sectionId === 'services-digital') {
-      setServicesTab('digital');
-      scrollToTarget('services');
-      return;
-    }
-    if (sectionId === 'services-automation') {
-      setServicesTab('automation');
-      scrollToTarget('services');
-      return;
-    }
-    if (sectionId === 'services-cro') {
-      setServicesTab('cro');
-      scrollToTarget('services');
-      return;
+  const handleNavigateToSection = (sectionId: string, serviceTab?: ServiceTab) => {
+    if (serviceTab) {
+      setServicesTab(serviceTab);
     }
 
-    scrollToTarget(sectionId);
-  };
-
-  const scrollToTarget = (id: string) => {
-    const el = document.getElementById(id);
-    if (el) {
-      el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    const targetElement = document.getElementById(sectionId);
+    if (targetElement) {
+      targetElement.scrollIntoView({ behavior: 'smooth', block: 'start' });
     }
   };
 
   return (
     <div className="min-h-screen bg-[#0C0D10] text-neutral-100 selection:bg-[#F97316] selection:text-white relative">
-      {/* Header */}
+      {/* 1. Header with accessible navigation & visible mobile toggle */}
       <Header
-        onOpenAuditModal={() => handleOpenAuditModal('Header CTA')}
+        onOpenAuditModal={() =>
+          handleOpenAuditModal({ source: 'Header CTA' })
+        }
         onNavigateToSection={handleNavigateToSection}
       />
 
-      {/* Main Content Sections */}
       <main>
-        {/* 1. Hero Section */}
+        {/* 2. Hero Section: Focused outcome, 2 CTAs, and mini marketing workflow previews */}
         <Hero
-          onOpenAuditModal={() => handleOpenAuditModal('Hero CTA')}
+          onOpenAuditModal={() =>
+            handleOpenAuditModal({ source: 'Hero Primary CTA' })
+          }
           onExploreServices={() => handleNavigateToSection('services')}
         />
 
-        {/* 2. Problem-First Section */}
+        {/* 3. Problem-First Bottleneck Selector */}
         <ProblemSelector
-          onSelectService={(serviceId) => handleNavigateToSection(serviceId)}
-          onOpenAuditModal={(problem) => handleOpenAuditModal(problem ? `Bottleneck: ${problem}` : undefined)}
+          onSelectService={(tab) => handleNavigateToSection('services', tab)}
+          onOpenAuditModal={(problem) =>
+            handleOpenAuditModal({
+              source: 'Problem Selector',
+              businessProblem: problem,
+            })
+          }
         />
 
-        {/* 3. MarketMe Growth System (Funnel Engine) */}
+        {/* 4. MarketMe Growth System (Funnel Engine) */}
         <GrowthEngine
-          onSelectService={(serviceId) => handleNavigateToSection(serviceId)}
-          onOpenAuditModal={() => handleOpenAuditModal('Growth Engine Stage Audit')}
+          onSelectService={(tab) => handleNavigateToSection('services', tab as ServiceTab)}
+          onOpenAuditModal={() =>
+            handleOpenAuditModal({
+              source: 'Growth Engine',
+              businessProblem: 'Funnel alignment across stages',
+            })
+          }
         />
 
-        {/* 4. Services Deep Dives */}
+        {/* 5. Services Section (Controlled by App state) */}
         <ServicesSection
-          initialTab={servicesTab}
-          onOpenAuditModal={(service) => handleOpenAuditModal(service)}
+          activeTab={servicesTab}
+          onTabChange={setServicesTab}
+          onOpenAuditModal={(serviceName) =>
+            handleOpenAuditModal({
+              source: 'Services Section',
+              selectedService: serviceName,
+            })
+          }
         />
 
-        {/* 5. How MarketMe Thinks (Scenario Analysis) */}
+        {/* 6. How MarketMe Thinks (Scenario Diagnostics) */}
         <HowWeThink
-          onOpenAuditModal={() => handleOpenAuditModal('How We Think Scenario')}
+          onOpenAuditModal={() =>
+            handleOpenAuditModal({
+              source: 'How We Think Scenario',
+              businessProblem: 'Investigating ad & lead friction',
+            })
+          }
         />
 
-        {/* 6. Our 5-Stage Process */}
+        {/* 7. Five-Stage Process */}
         <ProcessTimeline
-          onOpenAuditModal={() => handleOpenAuditModal('Process Step 01 (Diagnose)')}
+          onOpenAuditModal={() =>
+            handleOpenAuditModal({
+              source: 'Process Timeline Step 01',
+              selectedService: 'General Growth Diagnosis',
+            })
+          }
         />
 
-        {/* 7. Interactive Marketing Diagnosis Questionnaire */}
+        {/* 8. Interactive Marketing Diagnosis Tool */}
         <MarketingDiagnosis
-          onOpenAuditModal={() => handleOpenAuditModal('Marketing Diagnosis Tool')}
+          onOpenAuditModal={() =>
+            handleOpenAuditModal({ source: 'Marketing Diagnosis Questionnaire' })
+          }
         />
 
-        {/* 8. About MarketMe & Why MarketMe */}
+        {/* 9. About MarketMe Philosophy & Why Us */}
         <AboutWhySection />
 
-        {/* 9. FAQ Section */}
+        {/* 10. Frequently Asked Questions */}
         <FAQSection />
 
-        {/* 10. Final High-Impact CTA */}
+        {/* 11. Final High-Impact CTA */}
         <FinalCTA
-          onOpenAuditModal={() => handleOpenAuditModal('Final CTA')}
+          onOpenAuditModal={() =>
+            handleOpenAuditModal({ source: 'Final CTA' })
+          }
         />
       </main>
 
       {/* Footer */}
       <Footer
         onNavigateToSection={handleNavigateToSection}
-        onOpenAuditModal={() => handleOpenAuditModal('Footer CTA')}
+        onOpenAuditModal={() =>
+          handleOpenAuditModal({ source: 'Footer CTA' })
+        }
       />
 
       {/* Floating Ask Harry Mascot Assistant */}
       <AskHarry
-        onOpenAuditModal={(ctx) => handleOpenAuditModal(ctx)}
+        onOpenAuditModal={handleOpenAuditModal}
         onNavigateToSection={handleNavigateToSection}
       />
 
-      {/* Global Free Marketing Audit Modal */}
+      {/* Controlled Free Marketing Audit Modal */}
       <AuditModal
         isOpen={isAuditModalOpen}
         onClose={handleCloseAuditModal}
-        defaultContext={auditContext}
+        context={auditContext}
       />
     </div>
   );

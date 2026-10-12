@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { HarryPose } from '../types';
 
 interface HarryMascotProps {
@@ -25,57 +25,73 @@ export const HarryMascot: React.FC<HarryMascotProps> = ({
   showSpeechBubble = false,
   speechText,
 }) => {
-  // If user provides a custom image or puts files in /assets/harry/
-  const [imageError, setImageError] = useState(false);
+  // Target file path automatically attempts /assets/harry/{pose}.webp
   const targetSrc = imageSrc || `/assets/harry/${pose}.webp`;
 
+  // State to track if the external image file failed to load
+  const [hasError, setHasError] = useState(false);
+
+  // Reset error state whenever the target source or pose changes
+  useEffect(() => {
+    setHasError(false);
+  }, [targetSrc, pose]);
+
   const sizeDimensions = {
-    xs: 'w-10 h-10',
-    sm: 'w-16 h-16',
-    md: 'w-32 h-36',
-    lg: 'w-48 h-56',
-    xl: 'w-64 h-72',
+    xs: 'w-10 h-12',
+    sm: 'w-16 h-20',
+    md: 'w-32 h-40',
+    lg: 'w-48 h-60',
+    xl: 'w-60 h-76',
     custom: '',
   }[size];
 
-  // If a real image file exists and hasn't errored out, render the image
-  if (imageSrc && !imageError) {
+  // Speech bubble element constrained to avoid mobile overflow
+  const speechBubble = showSpeechBubble && speechText && (
+    <div className="absolute -top-11 left-1/2 -translate-x-1/2 w-max max-w-[min(260px,calc(100vw-3rem))] text-center bg-[#18191E] border border-[#F97316]/50 text-neutral-100 text-[11px] sm:text-xs px-2.5 py-1.5 rounded-lg shadow-xl pointer-events-none z-20 font-medium leading-tight">
+      <span className="text-[#F97316] font-semibold mr-1">Harry:</span>
+      <span>{speechText}</span>
+      <div className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-2 h-2 bg-[#18191E] border-r border-b border-[#F97316]/50 rotate-45" />
+    </div>
+  );
+
+  // 1. Attempt image render if file has not errored
+  if (!hasError) {
     return (
-      <div className={`relative inline-flex items-center justify-center ${sizeDimensions} ${className}`}>
+      <div
+        className={`relative inline-flex flex-col items-center justify-center aspect-[4/5] ${sizeDimensions} ${className} group`}
+      >
+        {speechBubble}
         <img
           src={targetSrc}
           alt={alt}
-          className="w-full h-full object-contain filter drop-shadow-md transition-transform duration-300 hover:scale-105"
-          onError={() => setImageError(true)}
+          className="w-full h-full object-contain filter drop-shadow-[0_10px_20px_rgba(0,0,0,0.4)] transition-transform duration-300 group-hover:scale-102 motion-reduce:transform-none"
+          onError={() => setHasError(true)}
           loading="lazy"
         />
-        {showSpeechBubble && speechText && (
-          <div className="absolute -top-12 left-1/2 -translate-x-1/2 whitespace-nowrap bg-neutral-900 border border-[#F97316]/50 text-white text-xs px-3 py-1.5 rounded-lg shadow-lg pointer-events-none z-10 font-medium">
-            {speechText}
-            <div className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-2 h-2 bg-neutral-900 border-r border-b border-[#F97316]/50 rotate-45" />
-          </div>
-        )}
       </div>
     );
   }
 
-  // High-fidelity vector SVG mascot illustration of Harry Fox
-  // White fur, orange accents, black visor with orange eyes, black hoodie, cargo pants, orange/white sneakers & tail
+  // 2. High-fidelity vector SVG mascot fallback
+  // Directly modeled after the MarketMe Harry Fox character design sheet:
+  // - White spiky anime/streetwear hair with orange flame tips
+  // - Fox ears with orange inner accents
+  // - Sleek black cyber visor with glowing slanted orange eye slits
+  // - Oversized black hoodie with orange drawstrings, orange cuffs
+  // - Black cargo joggers with orange strap details
+  // - Chunky black/white/orange sneakers
+  // - Massive bushy fox tail with white base & orange accents
   return (
-    <div className={`relative inline-flex flex-col items-center justify-center ${sizeDimensions} ${className} group`}>
-      {showSpeechBubble && speechText && (
-        <div className="absolute -top-10 left-1/2 -translate-x-1/2 whitespace-nowrap bg-[#18191E] border border-[#F97316]/40 text-neutral-100 text-xs px-3 py-1.5 rounded-lg shadow-xl pointer-events-none z-20 font-medium tracking-wide">
-          <span className="text-[#F97316] font-semibold mr-1.5">Harry:</span>
-          {speechText}
-          <div className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-2 h-2 bg-[#18191E] border-r border-b border-[#F97316]/40 rotate-45" />
-        </div>
-      )}
+    <div
+      className={`relative inline-flex flex-col items-center justify-center aspect-[4/5] ${sizeDimensions} ${className} group`}
+    >
+      {speechBubble}
 
       <svg
-        viewBox="0 0 200 220"
+        viewBox="0 0 200 240"
         fill="none"
         xmlns="http://www.w3.org/2000/svg"
-        className="w-full h-full filter drop-shadow-[0_10px_20px_rgba(0,0,0,0.5)] transition-transform duration-300 group-hover:scale-102"
+        className="w-full h-full filter drop-shadow-[0_12px_24px_rgba(0,0,0,0.5)] transition-transform duration-300 group-hover:scale-102 motion-reduce:transform-none"
         role="img"
         aria-label={alt}
       >
@@ -86,227 +102,199 @@ export const HarryMascot: React.FC<HarryMascotProps> = ({
             <stop offset="100%" stopColor="#FB923C" />
           </linearGradient>
           <linearGradient id={`tailOrange_${pose}`} x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0%" stopColor="#F97316" />
-            <stop offset="70%" stopColor="#C2410C" />
+            <stop offset="0%" stopColor="#FB923C" />
+            <stop offset="30%" stopColor="#F97316" />
+            <stop offset="100%" stopColor="#C2410C" />
           </linearGradient>
           <linearGradient id={`hoodieShade_${pose}`} x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0%" stopColor="#1E2024" />
-            <stop offset="100%" stopColor="#0F1012" />
+            <stop offset="0%" stopColor="#22242A" />
+            <stop offset="100%" stopColor="#111215" />
           </linearGradient>
-          <radialGradient id={`glowPupil_${pose}`} cx="50%" cy="50%" r="50%">
-            <stop offset="0%" stopColor="#FFEDD5" />
-            <stop offset="60%" stopColor="#F97316" />
-            <stop offset="100%" stopColor="#C2410C" />
-          </radialGradient>
         </defs>
 
-        {/* 1. Large Fluffy Fox Tail (White & Orange) */}
-        <g className="transition-transform duration-500 origin-bottom-left group-hover:rotate-3">
+        {/* 1. Large Fluffy Fox Tail (White Base & Flaming Orange Tip) */}
+        <g className="origin-bottom-left transition-transform duration-500 group-hover:rotate-2 motion-reduce:transform-none">
           {/* Main orange tail curve */}
           <path
-            d="M 125 150 C 155 140 185 110 178 75 C 172 45 140 55 128 78 C 122 88 126 120 120 145 Z"
+            d="M 115 170 C 160 160 195 125 188 85 C 182 50 148 62 135 88 C 128 100 130 135 110 165 Z"
             fill={`url(#tailOrange_${pose})`}
           />
-          {/* White tail fluffy tip */}
+          {/* White inner tail fluff */}
           <path
-            d="M 178 75 C 182 62 175 48 160 48 C 146 48 136 58 134 70 C 142 66 150 72 156 64 C 160 74 168 70 178 75 Z"
+            d="M 188 85 C 192 70 182 52 165 52 C 148 52 138 65 136 78 C 146 72 155 78 162 70 C 168 82 178 78 188 85 Z"
             fill="#FFFFFF"
           />
-          {/* Fluffy tail hair tuft lines */}
-          <path d="M 148 76 L 140 85" stroke="#FFFFFF" strokeWidth="2" strokeLinecap="round" opacity="0.6" />
-          <path d="M 160 84 L 154 94" stroke="#FFFFFF" strokeWidth="2" strokeLinecap="round" opacity="0.6" />
+          {/* Hair tufts */}
+          <path d="M 152 82 L 142 94" stroke="#FFFFFF" strokeWidth="2.5" strokeLinecap="round" opacity="0.7" />
+          <path d="M 166 92 L 158 104" stroke="#FFFFFF" strokeWidth="2.5" strokeLinecap="round" opacity="0.7" />
         </g>
 
         {/* 2. Fox Ears */}
         {/* Left Ear */}
-        <path d="M 62 65 L 42 22 C 40 18 48 18 56 24 L 80 54 Z" fill="#FFFFFF" />
-        <path d="M 64 60 L 50 28 C 49 26 53 26 58 31 L 74 52 Z" fill="#F97316" />
-        <path d="M 42 22 L 48 34" stroke="#18191E" strokeWidth="2" strokeLinecap="round" />
+        <path d="M 60 70 L 36 20 C 34 16 44 16 54 22 L 80 56 Z" fill="#FFFFFF" />
+        <path d="M 62 65 L 46 26 C 45 24 50 24 56 30 L 74 54 Z" fill="#F97316" />
+        <path d="M 36 20 L 44 32" stroke="#16171B" strokeWidth="2.5" strokeLinecap="round" />
 
         {/* Right Ear */}
-        <path d="M 122 65 L 142 22 C 144 18 136 18 128 24 L 104 54 Z" fill="#FFFFFF" />
-        <path d="M 120 60 L 134 28 C 135 26 131 26 126 31 L 110 52 Z" fill="#F97316" />
-        <path d="M 142 22 L 136 34" stroke="#18191E" strokeWidth="2" strokeLinecap="round" />
+        <path d="M 124 70 L 148 20 C 150 16 140 16 130 22 L 104 56 Z" fill="#FFFFFF" />
+        <path d="M 122 65 L 138 26 C 139 24 134 24 128 30 L 110 54 Z" fill="#F97316" />
+        <path d="M 148 20 L 140 32" stroke="#16171B" strokeWidth="2.5" strokeLinecap="round" />
 
-        {/* 3. White Fox Head & Cheeks */}
+        {/* 3. Spiky Anime Streetwear Hair (White with Orange Flame Tips) */}
+        {/* White base hair crown */}
         <path
-          d="M 60 70 C 50 82 45 98 56 108 C 66 116 82 120 92 122 C 102 122 118 116 128 108 C 139 98 134 82 124 70 C 114 60 70 60 60 70 Z"
+          d="M 52 74 C 44 56 56 38 72 32 C 84 26 100 26 112 32 C 128 38 140 56 132 74 C 144 88 140 106 128 116 C 114 126 70 126 56 116 C 44 106 40 88 52 74 Z"
+          fill="#FFFFFF"
+        />
+        {/* Orange Flame Hair Highlights */}
+        <path d="M 72 32 C 78 22 92 18 96 10 C 100 18 114 22 120 32 C 108 28 84 28 72 32 Z" fill="#F97316" />
+        <path d="M 54 44 C 48 38 48 28 46 22 C 54 30 62 34 68 38 Z" fill="#F97316" />
+        <path d="M 130 44 C 136 38 136 28 138 22 C 130 30 122 34 116 38 Z" fill="#F97316" />
+
+        {/* Head Shape & Cute Fox Face */}
+        <path
+          d="M 64 74 C 54 86 50 102 62 114 C 72 122 88 126 96 126 C 104 126 120 122 130 114 C 142 102 138 86 128 74 Z"
           fill="#FFFFFF"
         />
 
-        {/* Orange Cheek Accents / Fox Markings */}
-        <path d="M 52 92 C 58 90 62 96 66 100 C 58 102 54 98 52 92 Z" fill="#F97316" opacity="0.9" />
-        <path d="M 132 92 C 126 90 122 96 118 100 C 126 102 130 98 132 92 Z" fill="#F97316" opacity="0.9" />
-
-        {/* Cute Fox Nose */}
-        <ellipse cx="92" cy="110" rx="4.5" ry="3.5" fill="#18191E" />
-        <path d="M 92 113.5 L 92 116" stroke="#18191E" strokeWidth="1.5" strokeLinecap="round" />
-
-        {/* 4. Black Visor / Eye Area with Glowing Orange Eyes */}
+        {/* 4. Sleek Cyber Visor Mask with Glowing Orange Slanted Eyes */}
         <g>
-          {/* Black Visor Frame */}
-          <rect x="58" y="74" width="68" height="24" rx="10" fill="#111215" stroke="#27272A" strokeWidth="1.5" />
-          {/* Visor Glare Accent */}
-          <path d="M 64 78 L 82 78" stroke="#3F3F46" strokeWidth="1.5" strokeLinecap="round" />
+          {/* Black Visor Outline (Curved Mask as seen on sheet) */}
+          <path
+            d="M 58 78 C 54 90 60 104 96 104 C 132 104 138 90 134 78 C 126 74 106 72 96 76 C 86 72 66 74 58 78 Z"
+            fill="#121316"
+            stroke="#26272D"
+            strokeWidth="1.8"
+          />
 
-          {/* Left Eye / Visor Reticle */}
+          {/* Glowing Orange Slanted Eyes */}
           {pose === 'harry-thinking' ? (
-            <path d="M 72 86 C 75 82 82 82 85 86" stroke="#F97316" strokeWidth="3" strokeLinecap="round" />
+            <>
+              {/* Looking up thoughtfully */}
+              <path d="M 72 86 C 76 80 84 82 88 88" stroke="#F97316" strokeWidth="3.5" strokeLinecap="round" />
+              <path d="M 104 86 C 108 80 116 82 120 88" stroke="#F97316" strokeWidth="3.5" strokeLinecap="round" />
+            </>
           ) : pose === 'harry-celebrate' ? (
-            <path d="M 72 88 C 76 83 82 83 86 88" stroke="#F97316" strokeWidth="3" strokeLinecap="round" />
+            <>
+              {/* Joyful curved squint eyes */}
+              <path d="M 72 90 C 76 83 84 83 88 90" stroke="#F97316" strokeWidth="4" strokeLinecap="round" />
+              <path d="M 104 90 C 108 83 116 83 120 90" stroke="#F97316" strokeWidth="4" strokeLinecap="round" />
+            </>
           ) : (
             <>
-              <circle cx="78" cy="86" r="5" fill={`url(#glowPupil_${pose})`} />
-              <circle cx="79.5" cy="84.5" r="1.5" fill="#FFFFFF" />
+              {/* Confident sharp slanted cyber eyes */}
+              <path
+                d="M 72 90 C 72 84 76 82 84 84 C 88 88 84 94 76 94 Z"
+                fill={`url(#visorGlow_${pose})`}
+              />
+              <path
+                d="M 120 90 C 120 84 116 82 108 84 C 104 88 108 94 116 94 Z"
+                fill={`url(#visorGlow_${pose})`}
+              />
+              {/* Slit reflection highlights */}
+              <circle cx="80" cy="88" r="1.5" fill="#FFFFFF" />
+              <circle cx="112" cy="88" r="1.5" fill="#FFFFFF" />
             </>
           )}
 
-          {/* Right Eye / Visor Reticle */}
-          {pose === 'harry-thinking' ? (
-            <path d="M 99 86 C 102 82 109 82 112 86" stroke="#F97316" strokeWidth="3" strokeLinecap="round" />
-          ) : pose === 'harry-celebrate' ? (
-            <path d="M 98 88 C 102 83 108 83 112 88" stroke="#F97316" strokeWidth="3" strokeLinecap="round" />
-          ) : (
-            <>
-              <circle cx="106" cy="86" r="5" fill={`url(#glowPupil_${pose})`} />
-              <circle cx="107.5" cy="84.5" r="1.5" fill="#FFFFFF" />
-            </>
-          )}
-
-          {/* Subtle Cyber Target HUD tick */}
-          <line x1="91" y1="84" x2="93" y2="84" stroke="#F97316" strokeWidth="1.5" opacity="0.7" />
-          <line x1="91" y1="88" x2="93" y2="88" stroke="#F97316" strokeWidth="1.5" opacity="0.7" />
+          {/* Visor Glare Bar */}
+          <path d="M 66 81 L 82 81" stroke="#3A3C44" strokeWidth="1.5" strokeLinecap="round" />
         </g>
 
+        {/* Cute confident smirk mouth */}
+        <path d="M 92 116 C 96 119 104 118 106 115" stroke="#121316" strokeWidth="2" strokeLinecap="round" />
+
         {/* 5. Oversized Black Streetwear Hoodie */}
-        {/* Hoodie Collar & Body */}
         <path
-          d="M 64 122 C 54 125 44 140 46 168 C 47 175 52 178 60 178 L 124 178 C 132 178 137 175 138 168 C 140 140 130 125 120 122 Z"
+          d="M 64 126 C 52 130 42 146 44 176 C 45 184 52 186 60 186 L 132 186 C 140 186 147 184 148 176 C 150 146 140 130 128 126 Z"
           fill={`url(#hoodieShade_${pose})`}
         />
+
         {/* Kangaroo Pocket */}
         <path
-          d="M 68 152 L 116 152 L 122 172 L 62 172 Z"
-          fill="#1A1C20"
-          stroke="#2A2C32"
+          d="M 68 158 L 124 158 L 130 182 L 62 182 Z"
+          fill="#17181D"
+          stroke="#2A2C34"
           strokeWidth="1.2"
         />
 
         {/* Orange Hoodie Drawstrings */}
-        <path d="M 84 126 L 82 144" stroke="#F97316" strokeWidth="2" strokeLinecap="round" />
-        <circle cx="82" cy="145" r="2" fill="#F97316" />
-        <path d="M 100 126 L 102 144" stroke="#F97316" strokeWidth="2" strokeLinecap="round" />
-        <circle cx="102" cy="145" r="2" fill="#F97316" />
+        <path d="M 86 130 L 84 152" stroke="#F97316" strokeWidth="2.5" strokeLinecap="round" />
+        <circle cx="84" cy="153" r="2.5" fill="#F97316" />
+        <path d="M 106 130 L 108 152" stroke="#F97316" strokeWidth="2.5" strokeLinecap="round" />
+        <circle cx="108" cy="153" r="2.5" fill="#F97316" />
 
-        {/* MarketMe Orange Accent on Chest (Minimalist "M") */}
-        <path
-          d="M 90 136 L 92 131 L 94 136 L 96 131 L 98 136"
-          stroke="#F97316"
-          strokeWidth="1.5"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-        />
+        {/* Orange Hood Interior Peak */}
+        <path d="M 88 126 L 96 135 L 104 126" stroke="#F97316" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
 
-        {/* 6. Pose Variations for Arms & Props */}
-        {pose === 'harry-wave' && (
+        {/* 6. Pose Variations for Arms & Paws */}
+        {(pose === 'harry-point-right' || pose === 'harry-cta') ? (
           <g>
-            {/* Waving Right Paw */}
-            <path d="M 134 134 C 146 122 156 102 152 90 C 148 84 142 86 140 92 L 126 118" stroke="#1E2024" strokeWidth="12" strokeLinecap="round" />
-            <circle cx="152" cy="90" r="8" fill="#FFFFFF" />
-            <ellipse cx="152" cy="90" rx="4" ry="3" fill="#F97316" />
-            {/* Wave lines */}
-            <path d="M 162 82 C 166 86 166 94 162 98" stroke="#F97316" strokeWidth="2" strokeLinecap="round" />
+            {/* Pointing Right Hand (As in the character design sheet) */}
+            <path d="M 132 144 L 164 142" stroke="#1A1C22" strokeWidth="14" strokeLinecap="round" />
+            <circle cx="166" cy="142" r="8" fill="#F97316" />
+            <circle cx="168" cy="142" r="7" fill="#FFFFFF" />
+            <rect x="168" y="138" width="16" height="7" rx="3.5" fill="#FFFFFF" />
+            <circle cx="180" cy="141.5" r="2.5" fill="#F97316" />
+          </g>
+        ) : pose === 'harry-point-left' ? (
+          <g>
+            {/* Pointing Left Hand */}
+            <path d="M 60 144 L 28 142" stroke="#1A1C22" strokeWidth="14" strokeLinecap="round" />
+            <circle cx="26" cy="142" r="8" fill="#F97316" />
+            <circle cx="24" cy="142" r="7" fill="#FFFFFF" />
+            <rect x="12" y="138" width="16" height="7" rx="3.5" fill="#FFFFFF" />
+            <circle cx="16" cy="141.5" r="2.5" fill="#F97316" />
+          </g>
+        ) : pose === 'harry-wave' ? (
+          <g>
+            {/* Waving Paw */}
+            <path d="M 136 142 C 148 128 158 108 154 94 C 150 88 142 90 140 96 L 128 126" stroke="#1A1C22" strokeWidth="14" strokeLinecap="round" />
+            <circle cx="154" cy="94" r="9" fill="#FFFFFF" />
+            <ellipse cx="154" cy="94" rx="5" ry="4" fill="#F97316" />
+          </g>
+        ) : pose === 'harry-present' ? (
+          <g>
+            {/* Open Presenting Palm */}
+            <path d="M 134 144 L 160 134" stroke="#1A1C22" strokeWidth="14" strokeLinecap="round" />
+            <circle cx="164" cy="132" r="9" fill="#FFFFFF" />
+            <ellipse cx="164" cy="132" rx="5" ry="4" fill="#F97316" />
+          </g>
+        ) : (
+          <g>
+            {/* Hands casually tucked into hoodie pocket */}
+            <circle cx="68" cy="168" r="7" fill="#FFFFFF" />
+            <circle cx="124" cy="168" r="7" fill="#FFFFFF" />
+            <rect x="65" y="166" width="6" height="4" rx="2" fill="#F97316" />
+            <rect x="121" y="166" width="6" height="4" rx="2" fill="#F97316" />
           </g>
         )}
 
-        {(pose === 'harry-point-right' || pose === 'harry-cta') && (
-          <g>
-            {/* Pointing Right Arm */}
-            <path d="M 132 138 L 164 138" stroke="#1E2024" strokeWidth="12" strokeLinecap="round" />
-            <circle cx="168" cy="138" r="7" fill="#FFFFFF" />
-            {/* Extended pointer finger */}
-            <rect x="168" y="135" width="12" height="6" rx="3" fill="#FFFFFF" />
-            <circle cx="178" cy="138" r="2" fill="#F97316" />
-          </g>
-        )}
+        {/* 7. Black Cargo Joggers with Orange Straps */}
+        <path d="M 66 186 L 62 212 L 88 212 L 94 188 Z" fill="#141518" />
+        <path d="M 98 188 L 104 212 L 130 212 L 126 186 Z" fill="#141518" />
+        {/* Cargo Pockets with Orange Accent Tabs */}
+        <rect x="58" y="194" width="14" height="7" rx="2" fill="#1F2128" stroke="#2F323C" strokeWidth="1" />
+        <rect x="60" y="198" width="5" height="2" fill="#F97316" />
+        <rect x="120" y="194" width="14" height="7" rx="2" fill="#1F2128" stroke="#2F323C" strokeWidth="1" />
+        <rect x="127" y="198" width="5" height="2" fill="#F97316" />
 
-        {pose === 'harry-point-left' && (
-          <g>
-            {/* Pointing Left Arm */}
-            <path d="M 52 138 L 20 138" stroke="#1E2024" strokeWidth="12" strokeLinecap="round" />
-            <circle cx="16" cy="138" r="7" fill="#FFFFFF" />
-            <rect x="4" y="135" width="12" height="6" rx="3" fill="#FFFFFF" />
-            <circle cx="6" cy="138" r="2" fill="#F97316" />
-          </g>
-        )}
-
-        {pose === 'harry-analyse' && (
-          <g>
-            {/* Holding translucent HUD Tablet / Magnifier */}
-            <rect x="120" y="105" width="40" height="30" rx="4" fill="#18191E" stroke="#F97316" strokeWidth="1.5" />
-            <path d="M 126 124 L 132 118 L 138 122 L 148 112 L 154 116" stroke="#22C55E" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-            <circle cx="148" cy="112" r="2" fill="#22C55E" />
-            {/* Harry's paw holding the tablet */}
-            <circle cx="120" cy="120" r="6" fill="#FFFFFF" />
-          </g>
-        )}
-
-        {pose === 'harry-idea' && (
-          <g>
-            {/* Idea Bulb above head */}
-            <circle cx="92" cy="16" r="9" fill="#F97316" opacity="0.9" />
-            <path d="M 88 24 L 96 24" stroke="#FFFFFF" strokeWidth="2" strokeLinecap="round" />
-            <path d="M 90 27 L 94 27" stroke="#CBD5E1" strokeWidth="2" strokeLinecap="round" />
-            {/* Radiating beams */}
-            <line x1="92" y1="3" x2="92" y2="0" stroke="#F97316" strokeWidth="2" strokeLinecap="round" />
-            <line x1="77" y1="12" x2="74" y2="10" stroke="#F97316" strokeWidth="2" strokeLinecap="round" />
-            <line x1="107" y1="12" x2="110" y2="10" stroke="#F97316" strokeWidth="2" strokeLinecap="round" />
-          </g>
-        )}
-
-        {pose === 'harry-celebrate' && (
-          <g>
-            {/* Both arms up in air */}
-            <path d="M 54 135 L 36 102" stroke="#1E2024" strokeWidth="10" strokeLinecap="round" />
-            <circle cx="34" cy="98" r="7" fill="#FFFFFF" />
-            <path d="M 130 135 L 148 102" stroke="#1E2024" strokeWidth="10" strokeLinecap="round" />
-            <circle cx="150" cy="98" r="7" fill="#FFFFFF" />
-            {/* Confetti sparks */}
-            <circle cx="28" cy="80" r="2" fill="#F97316" />
-            <circle cx="156" cy="80" r="2" fill="#F97316" />
-            <path d="M 92 48 L 94 44" stroke="#F97316" strokeWidth="2" strokeLinecap="round" />
-          </g>
-        )}
-
-        {/* 7. Cargo Pants */}
-        <path d="M 64 178 L 62 198 L 86 198 L 90 180 Z" fill="#141518" />
-        <path d="M 94 180 L 98 198 L 122 198 L 120 178 Z" fill="#141518" />
-        {/* Cargo pocket flaps with orange tabs */}
-        <rect x="58" y="184" width="12" height="6" rx="1.5" fill="#1E2024" stroke="#2B2D33" strokeWidth="0.8" />
-        <rect x="59" y="188" width="4" height="1.5" fill="#F97316" />
-        <rect x="114" y="184" width="12" height="6" rx="1.5" fill="#1E2024" stroke="#2B2D33" strokeWidth="0.8" />
-        <rect x="121" y="188" width="4" height="1.5" fill="#F97316" />
-
-        {/* 8. Chunky Black/White/Orange Sneakers */}
+        {/* 8. Chunky Black, White, and Orange Streetwear Sneakers */}
         {/* Left Sneaker */}
         <path
-          d="M 54 206 C 54 200 60 198 72 198 L 86 198 L 86 208 C 86 211 80 212 66 212 L 56 212 C 54 212 54 209 54 206 Z"
-          fill="#111215"
+          d="M 52 222 C 52 215 58 212 72 212 L 88 212 L 88 226 C 88 229 82 231 66 231 L 54 231 C 52 231 52 226 52 222 Z"
+          fill="#121316"
         />
-        {/* White Sole */}
-        <rect x="52" y="209" width="36" height="4" rx="2" fill="#FFFFFF" />
-        {/* Orange Accent Stripe */}
-        <path d="M 64 203 L 78 203" stroke="#F97316" strokeWidth="2.5" strokeLinecap="round" />
+        <rect x="50" y="227" width="40" height="5" rx="2.5" fill="#FFFFFF" />
+        <path d="M 62 219 L 78 219" stroke="#F97316" strokeWidth="3" strokeLinecap="round" />
 
         {/* Right Sneaker */}
         <path
-          d="M 98 198 L 112 198 C 124 198 130 200 130 206 C 130 209 130 212 128 212 L 118 212 C 104 212 98 211 98 208 Z"
-          fill="#111215"
+          d="M 104 212 L 120 212 C 134 212 140 215 140 222 C 140 226 140 231 138 231 L 126 231 C 110 231 104 229 104 226 Z"
+          fill="#121316"
         />
-        {/* White Sole */}
-        <rect x="96" y="209" width="36" height="4" rx="2" fill="#FFFFFF" />
-        {/* Orange Accent Stripe */}
-        <path d="M 106 203 L 120 203" stroke="#F97316" strokeWidth="2.5" strokeLinecap="round" />
+        <rect x="102" y="227" width="40" height="5" rx="2.5" fill="#FFFFFF" />
+        <path d="M 114 219 L 130 219" stroke="#F97316" strokeWidth="3" strokeLinecap="round" />
       </svg>
     </div>
   );
